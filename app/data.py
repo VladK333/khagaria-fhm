@@ -27,3 +27,9 @@ def test_metrics() -> pd.DataFrame:
 def auc_splits() -> pd.DataFrame:
     """AUC on the train, validation and test splits."""
     return pd.read_csv(RESULTS / "metrics" / "auc_train_val_test.csv")
+
+
+@st.cache_data
+def threshold_curve(model: str) -> pd.DataFrame:
+    """Test-set CSI, sensitivity, specificity and confusion counts per threshold (step 0.005)."""
+    return pd.read_csv(RESULTS / "curves" / f"threshold_curve_{model}_test.csv")
