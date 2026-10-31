@@ -33,3 +33,15 @@ def auc_splits() -> pd.DataFrame:
 def threshold_curve(model: str) -> pd.DataFrame:
     """Test-set CSI, sensitivity, specificity and confusion counts per threshold (step 0.005)."""
     return pd.read_csv(RESULTS / "curves" / f"threshold_curve_{model}_test.csv")
+
+
+@st.cache_data
+def roc_curve(model: str, split: str) -> pd.DataFrame:
+    """ROC curve (fpr, tpr, threshold) for one model on the train, val or test split."""
+    return pd.read_csv(RESULTS / "curves" / f"roc_{model}_{split}.csv")
+
+
+@st.cache_data
+def calibration(model: str) -> pd.DataFrame:
+    """Reliability table on the test split: 10 bins of mean predicted vs observed flood frequency."""
+    return pd.read_csv(RESULTS / "curves" / f"calibration_{model}_test.csv")
