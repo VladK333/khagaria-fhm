@@ -24,7 +24,7 @@ fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], name="Random", line=dict(color="gra
 fig.update_layout(xaxis_title="False positive rate", yaxis_title="True positive rate",
                   xaxis_range=[0, 1], yaxis_range=[0, 1.02], margin=dict(t=20),
                   legend=dict(x=0.55, y=0.08))
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width="stretch")
 st.caption("Train, validation and test curves lying on top of each other mean the model generalises well.")
 
 st.subheader("ROC curves: all models (test)")
@@ -38,5 +38,5 @@ fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], name="Random", line=dict(color="gra
 fig.update_layout(xaxis_title="False positive rate", yaxis_title="True positive rate",
                   xaxis_range=[0, 1], yaxis_range=[0, 1.02], margin=dict(t=20),
                   legend=dict(x=0.55, y=0.08))
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width="stretch")
 st.caption("The selected model is drawn thicker. Zoom into the top-left corner to see the differences.")

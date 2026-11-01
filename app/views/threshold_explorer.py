@@ -25,9 +25,9 @@ def snap(value: float) -> None:
 cols = st.columns([4, 1, 1])
 tau = cols[0].slider("Threshold τ", 0.0, 1.0, step=0.001, format="%.3f", key=key)
 cols[1].button(f"Max-CSI ({marks['MaxCSI']:.3f})", on_click=snap, args=(marks["MaxCSI"],),
-               use_container_width=True)
+               width="stretch")
 cols[2].button(f"Youden ({marks['Youden']:.3f})", on_click=snap, args=(marks["Youden"],),
-               use_container_width=True)
+               width="stretch")
 
 row = curve.iloc[(curve["threshold"] - tau).abs().idxmin()]
 best = curve.loc[curve["CSI"].idxmax()]
@@ -50,7 +50,7 @@ for label, value, side in [("Max-CSI", marks["MaxCSI"], "top left"),
                   annotation_text=label, annotation_position=side)
 fig.update_layout(xaxis_title="Threshold τ", yaxis_title="Score", yaxis_range=[0, 1.05],
                   hovermode="x unified", margin=dict(t=30), legend=dict(orientation="h", y=-0.2))
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width="stretch")
 
 st.subheader("Confusion counts on the test set")
 c = st.columns(4)

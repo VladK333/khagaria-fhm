@@ -29,7 +29,7 @@ fig = px.bar(long, x="Metric", y="Value", color="Model", barmode="group",
              category_orders={"Model": data.MODELS})
 fig.update_yaxes(range=[0.7, 1])
 fig.update_layout(legend_title_text="", margin=dict(t=20))
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width="stretch")
 
 st.subheader("Metrics table")
 table = df[["Threshold", "AUC"] + METRICS + ["TP", "FP", "FN", "TN"]]
@@ -39,7 +39,7 @@ st.dataframe(
         **{c: st.column_config.NumberColumn(format="%.3f") for c in ["Threshold", "AUC"] + METRICS},
         **{c: st.column_config.NumberColumn(format="localized") for c in ["TP", "FP", "FN", "TN"]},
     },
-    use_container_width=True,
+    width="stretch",
 )
 
 st.subheader("AUC on train, validation and test")
@@ -50,4 +50,4 @@ fig = px.bar(auc.melt(id_vars="Model", var_name="Split", value_name="AUC"),
              x="Model", y="AUC", color="Split", barmode="group")
 fig.update_yaxes(range=[0.9, 1])
 fig.update_layout(legend_title_text="", margin=dict(t=20))
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width="stretch")
