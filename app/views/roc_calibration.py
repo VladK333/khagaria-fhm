@@ -57,3 +57,19 @@ st.caption(
     "probability matches how often those pixels were actually flooded. Below the diagonal the model "
     "over-predicts flooding, above it the model under-predicts."
 )
+
+st.subheader("Calibration: all models (test)")
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], name="Perfect calibration", line=dict(color="gray", dash="dot")))
+for name in data.MODELS:
+    cal = data.calibration(name)
+    ece = ((cal["mean_pred"] - cal["obs_freq"]).abs() * cal["n"]).sum() / cal["n"].sum()
+    fig.add_trace(go.Scatter(x=cal["mean_pred"], y=cal["obs_freq"], name=f"{name} (ECE {ece:.3f})",
+                             mode="lines+markers", line=dict(width=3 if name == model else 1.5)))
+fig.update_layout(xaxis_title="Mean predicted probability", yaxis_title="Observed flood frequency",
+                  xaxis_range=[0, 1], yaxis_range=[0, 1.02], margin=dict(t=20),
+                  legend=dict(x=0.02, y=0.98))
+st.plotly_chart(fig, width="stretch")
+st.caption(
+    "ECE (expected calibration error) is the pixel-weighted average distance from the diagonal; lower is better."
+)
