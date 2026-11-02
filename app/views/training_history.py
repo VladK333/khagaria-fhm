@@ -28,3 +28,31 @@ st.caption(
     "without improvement) never triggered. CatBoost was trained for a fixed 800 iterations and logged "
     "validation AUC only."
 )
+
+st.subheader("Neural networks: loss and AUC per epoch")
+NETS = {"ANN": "#D85A30", "DNN": "#1D9E75"}
+left, right = st.columns(2)
+
+fig = go.Figure()
+for name, color in NETS.items():
+    h = data.training_history(name)
+    fig.add_trace(go.Scatter(x=h["epoch"], y=h["train_loss"], name=f"{name} train",
+                             line=dict(color=color, width=1.5, dash="dot")))
+    fig.add_trace(go.Scatter(x=h["epoch"], y=h["val_loss"], name=f"{name} validation",
+                             line=dict(color=color, width=2)))
+fig.update_layout(title="Loss (binary cross-entropy)", xaxis_title="Epoch", yaxis_title="Loss",
+                  hovermode="x unified", margin=dict(t=40), legend=dict(orientation="h", y=-0.25))
+left.plotly_chart(fig, width="stretch")
+
+fig = go.Figure()
+for name, color in NETS.items():
+    h = data.training_history(name)
+    fig.add_trace(go.Scatter(x=h["epoch"], y=h["val_auc"], name=f"{name} validation",
+                             line=dict(color=color, width=2)))
+fig.update_layout(title="Validation AUC", xaxis_title="Epoch", yaxis_title="AUC",
+                  hovermode="x unified", margin=dict(t=40), legend=dict(orientation="h", y=-0.25))
+right.plotly_chart(fig, width="stretch")
+st.caption(
+    "Both networks were trained for 15 epochs (Adam, learning rate 0.001, batch size 4,096). "
+    "Validation loss below training loss is expected here: dropout is active during training only."
+)
