@@ -8,6 +8,7 @@ pages = [
     st.Page("views/threshold_explorer.py", title="Threshold explorer", icon=":material/tune:"),
     st.Page("views/roc_calibration.py", title="ROC and calibration", icon=":material/show_chart:"),
     st.Page("views/training_history.py", title="Training history", icon=":material/history:"),
+    st.Page("views/shap_analysis.py", title="SHAP", icon=":material/insights:"),
 ]
 
 st.navigation(pages).run()

@@ -2,6 +2,7 @@
 import json
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -51,3 +52,23 @@ def calibration(model: str) -> pd.DataFrame:
 def training_history(model: str) -> pd.DataFrame:
     """Per-round (XGBoost, CatBoost) or per-epoch (ANN, DNN) training history."""
     return pd.read_csv(RESULTS / "training" / f"history_{model}.csv")
+
+
+@st.cache_data
+def mean_abs_shap() -> pd.DataFrame:
+    """Global importance: mean |SHAP| and rank per model and feature.
+    RandomForest is in probability units, the other models in log-odds."""
+    return pd.read_csv(RESULTS / "shap" / "mean_abs_shap.csv")
+
+
+@st.cache_data
+def shap_values(model: str) -> pd.DataFrame:
+    """Per-pixel SHAP values (5,000 pixels x 14 features), rows aligned with shap_features()."""
+    values = np.load(RESULTS / "shap" / f"shap_values_{model}.npy")
+    return pd.DataFrame(values, columns=run_config()["features"])
+
+
+@st.cache_data
+def shap_features() -> pd.DataFrame:
+    """Feature values, label and pixel index of the 5,000 pixels used for SHAP."""
+    return pd.read_csv(RESULTS / "shap" / "shap_sample_features.csv")
