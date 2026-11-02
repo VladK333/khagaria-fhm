@@ -45,3 +45,9 @@ def roc_curve(model: str, split: str) -> pd.DataFrame:
 def calibration(model: str) -> pd.DataFrame:
     """Reliability table on the test split: 10 bins of mean predicted vs observed flood frequency."""
     return pd.read_csv(RESULTS / "curves" / f"calibration_{model}_test.csv")
+
+
+@st.cache_data
+def training_history(model: str) -> pd.DataFrame:
+    """Per-round (XGBoost, CatBoost) or per-epoch (ANN, DNN) training history."""
+    return pd.read_csv(RESULTS / "training" / f"history_{model}.csv")
