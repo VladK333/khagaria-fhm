@@ -1,4 +1,6 @@
+import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 import data
@@ -57,4 +59,31 @@ st.plotly_chart(fig, width="stretch")
 st.caption(
     "1 = most important. Rainfall, Geomorphology, Soil and Elevation are in the top 4 for all five models; "
     "TWI, Slope, Aspect and Curvature are in the bottom 4."
+)
+
+st.subheader(f"Beeswarm: {model}")
+values = data.shap_values(model)
+features = data.shap_features()
+order = values.abs().mean().sort_values().index.tolist()
+jitter = np.random.default_rng(42).uniform(-0.35, 0.35, len(values))
+fig = go.Figure()
+for i, feature in enumerate(order):
+    # Colour by percentile within the feature, so factors with different units share one scale
+    pct = features[feature].rank(pct=True)
+    fig.add_trace(go.Scattergl(
+        x=values[feature], y=i + jitter, mode="markers", name=feature, showlegend=False,
+        marker=dict(size=3, color=pct, colorscale=[[0, "#534AB7"], [1, "#D85A30"]], cmin=0, cmax=1,
+                    showscale=i == 0, colorbar=dict(title="Factor value", tickvals=[0, 1],
+                                                    ticktext=["Low", "High"])),
+        customdata=features[feature],
+        hovertemplate=f"{feature} = %{{customdata:.3f}}<br>SHAP %{{x:.3f}}<extra></extra>"))
+fig.add_vline(x=0, line_color="gray", line_width=1)
+fig.update_yaxes(tickvals=list(range(len(order))), ticktext=order)
+fig.update_layout(xaxis_title=f"SHAP value ({UNITS.get(model, 'log-odds')}): impact on flood prediction",
+                  height=600, margin=dict(t=20))
+st.plotly_chart(fig, width="stretch")
+st.caption(
+    "Each dot is one of the 5,000 pixels. Dots right of zero push the prediction towards flood, left of zero "
+    "towards non-flood. For the categorical factors (Geomorphology, Lithology, LULC, Soil) the colour "
+    "follows the class code, which has no natural order."
 )
