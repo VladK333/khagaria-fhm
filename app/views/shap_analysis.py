@@ -45,3 +45,16 @@ st.caption(
     "Each model's importances are scaled to sum to 100 %, which makes the tree models (log-odds and "
     "probability units) and the neural networks comparable. Factors are sorted by their average share."
 )
+
+st.subheader("Importance rank per model")
+ranks = data.mean_abs_shap().pivot(index="Feature", columns="Model", values="rank")[data.MODELS]
+ranks = ranks.loc[ranks.mean(axis=1).sort_values().index]
+fig = px.imshow(ranks, text_auto=True, color_continuous_scale="Purples_r", aspect="auto",
+                labels=dict(color="Rank"))
+fig.update_layout(xaxis_title="", yaxis_title="", height=520, margin=dict(t=20))
+fig.update_xaxes(side="top")
+st.plotly_chart(fig, width="stretch")
+st.caption(
+    "1 = most important. Rainfall, Geomorphology, Soil and Elevation are in the top 4 for all five models; "
+    "TWI, Slope, Aspect and Curvature are in the bottom 4."
+)
