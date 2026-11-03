@@ -87,3 +87,26 @@ st.caption(
     "towards non-flood. For the categorical factors (Geomorphology, Lithology, LULC, Soil) the colour "
     "follows the class code, which has no natural order."
 )
+
+st.subheader(f"Dependence: {model}")
+feature = st.selectbox("Factor", order[::-1])
+dep = features[[feature, "label"]].assign(SHAP=values[feature].to_numpy())
+dep["Observed"] = dep["label"].map({1: "Flood", 0: "Non-flood"})
+colors = {"Flood": "#D85A30", "Non-flood": "#534AB7"}
+if feature in categorical:
+    dep[feature] = dep[feature].astype(int).astype(str)
+    fig = px.box(dep, x=feature, y="SHAP", color="Observed", color_discrete_map=colors,
+                 category_orders={feature: sorted(dep[feature].unique(), key=int)})
+    fig.update_xaxes(title=f"{feature} class code", type="category")
+else:
+    fig = px.scatter(dep, x=feature, y="SHAP", color="Observed", color_discrete_map=colors, opacity=0.5,
+                     render_mode="webgl")
+    fig.update_traces(marker_size=4)
+fig.add_hline(y=0, line_color="gray", line_width=1)
+fig.update_layout(yaxis_title=f"SHAP value ({UNITS.get(model, 'log-odds')})", legend_title_text="",
+                  height=480, margin=dict(t=20))
+st.plotly_chart(fig, width="stretch")
+st.caption(
+    "How the factor's value changes its contribution to the prediction. Points above zero push towards flood. "
+    "Categorical factors are shown per class code; the code-to-name tables are not in the repository yet."
+)
