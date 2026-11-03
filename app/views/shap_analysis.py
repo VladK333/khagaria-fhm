@@ -29,3 +29,19 @@ st.caption(
     "Mean absolute SHAP value over the 5,000 pixels: the average size of each factor's effect, "
     "regardless of direction. Units differ between models, so compare ranks rather than raw values across models."
 )
+
+st.subheader("Global importance: all models")
+share = data.mean_abs_shap().copy()
+share["Share (%)"] = 100 * share["mean_abs_SHAP"] / share.groupby("Model")["mean_abs_SHAP"].transform("sum")
+# Ascending, because the y axis below is reversed so that XGBoost sits on top within each group
+order = share.groupby("Feature")["Share (%)"].mean().sort_values().index.tolist()
+fig = px.bar(share, x="Share (%)", y="Feature", color="Model", orientation="h", barmode="group",
+             category_orders={"Feature": order, "Model": data.MODELS}, hover_data={"rank": True})
+fig.update_yaxes(autorange="reversed")
+fig.update_layout(xaxis_title="Share of the model's total mean |SHAP| (%)", yaxis_title="",
+                  height=700, margin=dict(t=20), legend_title_text="")
+st.plotly_chart(fig, width="stretch")
+st.caption(
+    "Each model's importances are scaled to sum to 100 %, which makes the tree models (log-odds and "
+    "probability units) and the neural networks comparable. Factors are sorted by their average share."
+)
