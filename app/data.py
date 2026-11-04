@@ -69,6 +69,12 @@ def shap_values(model: str) -> pd.DataFrame:
 
 
 @st.cache_data
+def correlation_matrix() -> pd.DataFrame:
+    """Pairwise correlation between the 14 conditioning factors."""
+    return pd.read_csv(RESULTS / "metrics" / "correlation_matrix.csv", index_col=0)
+
+
+@st.cache_data
 def shap_features() -> pd.DataFrame:
     """Feature values, label and pixel index of the 5,000 pixels used for SHAP."""
     return pd.read_csv(RESULTS / "shap" / "shap_sample_features.csv")
