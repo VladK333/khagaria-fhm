@@ -44,6 +44,22 @@ python scripts/v2/04_schematics.py   # flowchart + graphical abstract
 
 The data-preparation, training and SHAP scripts were removed from this repository for now; they are available from the repository owner on request.
 
+## Interactive app
+A Streamlit app for exploring the v2 results in the browser. It only reads the CSV/JSON/NPY files in `results_v2/`; nothing is retrained. It needs four light packages, not the full analysis environment.
+```bash
+pip install -r app/requirements.txt
+streamlit run app/main.py            # opens http://localhost:8501
+```
+| Page | What it shows |
+|---|---|
+| Model comparison | test metrics at the Max-CSI, Youden and 0.5 thresholds; AUC on train/val/test |
+| Threshold explorer | CSI, sensitivity, specificity and confusion counts as the threshold moves, with Max-CSI and Youden marked |
+| ROC and calibration | ROC curves per split and per model; reliability diagrams with ECE |
+| Training history | XGBoost/CatBoost AUC per round, ANN/DNN loss and AUC per epoch |
+| SHAP | global importance, normalised comparison and rank heatmap across models, beeswarm, dependence plots |
+| Input data | correlation matrix and VIF of the 14 factors |
+| Area statistics | area per susceptibility class and model agreement |
+
 ## Layout (v2)
 | Path | What |
 |---|---|
@@ -57,6 +73,7 @@ The data-preparation, training and SHAP scripts were removed from this repositor
 | `results_v2/training/` | training histories (XGBoost/CatBoost AUC per round, ANN/DNN loss per epoch), `sample_20k_pixels.csv` (balanced pixels with features, label, split, coordinates and all five predictions), `split_indices.npz` |
 | `results_v2/maps/` | `probability/Map_*.tif`, `binary/Binary_*_MaxCSI.tif`, `binary/Agreement_count_MaxCSI.tif` (0–5 models), `classified/Classified_*_NaturalBreaks.tif` |
 | `results_v2/figures/` | all manuscript figures |
+| `app/` | interactive Streamlit app: `main.py` (entry point), `data.py` (cached loaders), `views/` (one file per page) |
 | `manuscript/manuscript_v2.tex` / `.pdf` | revised manuscript (built by `make_v2.py` from the submitted `manuscript.tex`) |
 
 ### Submitted version (kept for reference)
