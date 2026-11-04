@@ -75,6 +75,12 @@ def correlation_matrix() -> pd.DataFrame:
 
 
 @st.cache_data
+def vif() -> pd.DataFrame:
+    """Variance inflation factor per conditioning factor."""
+    return pd.read_csv(RESULTS / "metrics" / "VIF.csv")
+
+
+@st.cache_data
 def shap_features() -> pd.DataFrame:
     """Feature values, label and pixel index of the 5,000 pixels used for SHAP."""
     return pd.read_csv(RESULTS / "shap" / "shap_sample_features.csv")
