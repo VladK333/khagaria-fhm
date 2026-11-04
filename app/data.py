@@ -37,6 +37,12 @@ def area_statistics() -> pd.DataFrame:
 
 
 @st.cache_data
+def agreement_areas() -> pd.DataFrame:
+    """Area (km2) by the number of models (0-5) that flag a pixel as flood at their Max-CSI threshold."""
+    return pd.read_csv(RESULTS / "metrics" / "agreement_areas.csv")
+
+
+@st.cache_data
 def threshold_curve(model: str) -> pd.DataFrame:
     """Test-set CSI, sensitivity, specificity and confusion counts per threshold (step 0.005)."""
     return pd.read_csv(RESULTS / "curves" / f"threshold_curve_{model}_test.csv")

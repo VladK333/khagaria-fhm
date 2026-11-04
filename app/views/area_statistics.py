@@ -32,3 +32,24 @@ st.caption(
     + ". XGBoost is the most decisive model (most pixels in Very Low or Very High); the neural networks "
     "spread more area over the middle classes."
 )
+
+st.subheader("Model agreement")
+agree = data.agreement_areas()
+district = agree["km2"].sum()
+unanimous = agree.loc[agree["models_flagging"].isin([0, 5]), "km2"].sum()
+
+cols = st.columns(3)
+cols[0].metric("All models agree", f"{100 * unanimous / district:.1f} %")
+cols[1].metric("Flood in all 5 models", f"{agree.set_index('models_flagging').loc[5, 'km2']:,.0f} km²")
+cols[2].metric("Models disagree", f"{district - unanimous:,.0f} km²")
+
+agree["Models flagging flood"] = agree["models_flagging"].astype(str)
+fig = px.bar(agree, x="Models flagging flood", y="km2", text_auto=",.0f",
+             color="Models flagging flood",
+             color_discrete_sequence=["#F1EFE8", "#CECBF6", "#AFA9EC", "#7F77DD", "#534AB7", "#26215C"])
+fig.update_layout(yaxis_title="Area (km²)", showlegend=False, height=380, margin=dict(t=20))
+st.plotly_chart(fig, width="stretch")
+st.caption(
+    "Each model's binary hazard map uses its own Max-CSI threshold. 0 = no model predicts flood, "
+    "5 = all models do. The disagreement zone (1–4) is where the choice of model matters."
+)
