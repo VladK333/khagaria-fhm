@@ -1,0 +1,6 @@
+# Interactive app only (streamlit run app/main.py); the analysis itself uses environment_v2.yml.
+# streamlit >= 1.50: st.navigation, st.segmented_control and width="stretch" on charts
+streamlit>=1.50
+plotly>=5.22
+pandas>=2.0
+numpy>=1.24
