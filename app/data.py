@@ -31,6 +31,12 @@ def auc_splits() -> pd.DataFrame:
 
 
 @st.cache_data
+def area_statistics() -> pd.DataFrame:
+    """Area per susceptibility class (km2 and % of the district) and Max-CSI hazard area per model."""
+    return pd.read_csv(RESULTS / "metrics" / "area_statistics.csv")
+
+
+@st.cache_data
 def threshold_curve(model: str) -> pd.DataFrame:
     """Test-set CSI, sensitivity, specificity and confusion counts per threshold (step 0.005)."""
     return pd.read_csv(RESULTS / "curves" / f"threshold_curve_{model}_test.csv")

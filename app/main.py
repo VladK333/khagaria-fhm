@@ -10,6 +10,7 @@ pages = [
     st.Page("views/training_history.py", title="Training history", icon=":material/history:"),
     st.Page("views/shap_analysis.py", title="SHAP", icon=":material/insights:"),
     st.Page("views/input_data.py", title="Input data", icon=":material/table_chart:"),
+    st.Page("views/area_statistics.py", title="Area statistics", icon=":material/area_chart:"),
 ]
 
 st.navigation(pages).run()
