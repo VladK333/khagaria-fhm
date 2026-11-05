@@ -1,4 +1,5 @@
 """Loaders for the v2 outputs. Every function only reads files under results_v2/."""
+import base64
 import json
 from pathlib import Path
 
@@ -91,6 +92,15 @@ def correlation_matrix() -> pd.DataFrame:
 def vif() -> pd.DataFrame:
     """Variance inflation factor per conditioning factor."""
     return pd.read_csv(RESULTS / "metrics" / "VIF.csv")
+
+
+@st.cache_data
+def map_layer(name: str) -> tuple[str, list[list[float]]]:
+    """A pre-rendered map layer as a PNG data URI plus its corner coordinates (lon, lat)."""
+    png = base64.b64encode((MAP_LAYERS / f"{name}.png").read_bytes()).decode()
+    with open(MAP_LAYERS / f"{name}.json") as f:
+        corners = json.load(f)["coordinates"]
+    return f"data:image/png;base64,{png}", corners
 
 
 @st.cache_data
