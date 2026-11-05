@@ -4,16 +4,20 @@ Each GeoTIFF (EPSG:32645, 30 m) is reprojected to WGS84 (EPSG:4326), coloured an
 transparent PNG plus a JSON file with its corner coordinates. The app then only overlays these
 images on a basemap and does not need rasterio itself.
 
-    python scripts/viz/prepare_map_layers.py      # needs rasterio, matplotlib, pillow
+The district boundary is converted from the shapefile to a GeoJSON file in the same folder.
+
+    python scripts/viz/prepare_map_layers.py      # needs rasterio, matplotlib, pillow, pyshp
 """
 import json
 from pathlib import Path
 
 import numpy as np
 import rasterio
+import shapefile
 from matplotlib import colormaps
 from PIL import Image
-from rasterio.warp import Resampling, calculate_default_transform, reproject
+from rasterio.crs import CRS
+from rasterio.warp import Resampling, calculate_default_transform, reproject, transform_geom
 
 ROOT = Path(__file__).resolve().parents[2]
 RESULTS = ROOT / "results_v2"
@@ -66,6 +70,18 @@ def write_layer(name: str, rgba: np.ndarray, corners: list[list[float]]) -> None
     print(f"{name}: {rgba.shape[1]} x {rgba.shape[0]} px")
 
 
+def write_boundary(path: Path) -> None:
+    """Write the district boundary shapefile as a WGS84 GeoJSON (coordinates rounded to ~1 m)."""
+    reader = shapefile.Reader(path)
+    src_crs = CRS.from_wkt(path.with_suffix(".prj").read_text())
+    features = [{"type": "Feature", "properties": {},
+                 "geometry": transform_geom(src_crs, DST_CRS, shape.__geo_interface__, precision=5)}
+                for shape in reader.shapes()]
+    OUT.mkdir(parents=True, exist_ok=True)
+    (OUT / "district_boundary.geojson").write_text(json.dumps({"type": "FeatureCollection", "features": features}))
+    print(f"district_boundary: {len(features)} polygon(s)")
+
+
 MODELS = ["XGBoost", "CatBoost", "RandomForest", "DNN", "ANN"]
 # Keep these colours in sync with the legends in app/views/maps.py
 CLASSES = {0: "#E1F5EE", 1: "#9FE1CB", 2: "#FAC775", 3: "#F0997B", 4: "#D85A30"}  # Very Low .. Very High
@@ -74,6 +90,8 @@ ERRORS = {0: "#D3D1C780", 1: "#E24B4A", 2: "#EF9F27", 3: "#1D9E75"}  # TN, FN, F
 AGREEMENT = {0: "#F1EFE880", 1: "#CECBF6", 2: "#AFA9EC", 3: "#7F77DD", 4: "#534AB7", 5: "#26215C"}
 
 if __name__ == "__main__":
+    write_boundary(ROOT / "data" / "vectors" / "Khagaria_Boundary_UTM.shp")
+
     maps = RESULTS / "maps"
     label, _ = reproject_to_wgs84(ROOT / "data" / "inventory" / "label_30m_v2.tif")
     for model in MODELS:

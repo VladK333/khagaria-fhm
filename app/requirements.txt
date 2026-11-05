@@ -1,6 +1,7 @@
 # Interactive app only (streamlit run app/main.py); the analysis itself uses environment_v2.yml.
 # streamlit >= 1.50: st.navigation, st.segmented_control and width="stretch" on charts
 streamlit>=1.50
-plotly>=5.22
+# plotly >= 5.24: go.Scattermap (MapLibre, no access token needed)
+plotly>=5.24
 pandas>=2.0
 numpy>=1.24

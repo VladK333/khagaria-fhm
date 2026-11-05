@@ -8,6 +8,7 @@ import streamlit as st
 
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results_v2"
+MAP_LAYERS = Path(__file__).resolve().parent / "assets" / "maps"  # built by scripts/viz/prepare_map_layers.py
 
 MODELS = ["XGBoost", "CatBoost", "RandomForest", "DNN", "ANN"]
 
@@ -90,6 +91,13 @@ def correlation_matrix() -> pd.DataFrame:
 def vif() -> pd.DataFrame:
     """Variance inflation factor per conditioning factor."""
     return pd.read_csv(RESULTS / "metrics" / "VIF.csv")
+
+
+@st.cache_data
+def district_boundary() -> dict:
+    """District boundary as WGS84 GeoJSON."""
+    with open(MAP_LAYERS / "district_boundary.geojson") as f:
+        return json.load(f)
 
 
 @st.cache_data
