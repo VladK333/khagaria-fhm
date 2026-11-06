@@ -3,6 +3,7 @@ import streamlit as st
 
 import data
 from mapping import class_legend, colour_bar, map_figure as base_map
+from widgets import pick
 
 # Same colours as scripts/viz/prepare_map_layers.py
 CLASSES = {"Very Low": "#E1F5EE", "Low": "#9FE1CB", "Moderate": "#FAC775", "High": "#F0997B",
@@ -82,12 +83,12 @@ if compare:
     sides = st.columns(2)
     for side, default in zip(sides, ["XGBoost", "ANN"]):
         with side:
-            model = st.selectbox("Model", data.MODELS, index=data.MODELS.index(default), key=f"model_{default}")
+            model = pick("Model", data.MODELS, default, key=f"maps_model_{default}", pills=True)
             st.plotly_chart(map_figure(layer, model, opacity, height=500), width="stretch",
                             config={"scrollZoom": True}, key=f"map_{default}")
             show_metrics(layer_metrics(layer, model), per_row=2)
 else:
-    model = st.selectbox("Model", data.MODELS, disabled=layer in ALL_MODELS)
+    model = pick("Model", data.MODELS, "XGBoost", key="maps_model", disabled=layer in ALL_MODELS)
     st.plotly_chart(map_figure(layer, model, opacity, height=620), width="stretch", config={"scrollZoom": True})
     metrics = layer_metrics(layer, model)
     if metrics:

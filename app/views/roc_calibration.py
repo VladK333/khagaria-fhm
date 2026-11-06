@@ -2,6 +2,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import data
+from widgets import pick
 
 SPLITS = {"train": ("Train", "#AFA9EC"), "val": ("Validation", "#534AB7"), "test": ("Test", "#D85A30")}
 
@@ -11,7 +12,7 @@ st.caption(
     "Calibration shows whether a predicted probability of, say, 0.7 really means a 70 % flood frequency."
 )
 
-model = st.selectbox("Model", data.MODELS)
+model = pick("Model", data.MODELS, "XGBoost", key="roc_model")
 
 st.subheader(f"ROC curves: {model}")
 auc = data.auc_splits().set_index("Model").loc[model]

@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import data
+from widgets import pick
 
 UNITS = {"RandomForest": "probability"}
 
@@ -13,7 +14,7 @@ st.caption(
     "(positive) or non-flood (negative). Computed on a sample of 5,000 pixels."
 )
 
-model = st.selectbox("Model", data.MODELS)
+model = pick("Model", data.MODELS, "XGBoost", key="shap_model")
 
 st.subheader(f"Global importance: {model}")
 categorical = set(data.run_config()["categorical_coded"])
@@ -89,7 +90,7 @@ st.caption(
 )
 
 st.subheader(f"Dependence: {model}")
-feature = st.selectbox("Factor", order[::-1])
+feature = pick("Factor", order[::-1], order[-1], key="shap_factor", pills=True)
 dep = features[[feature, "label"]].assign(SHAP=values[feature].to_numpy())
 dep["Observed"] = dep["label"].map({1: "Flood", 0: "Non-flood"})
 colors = {"Flood": "#D85A30", "Non-flood": "#534AB7"}

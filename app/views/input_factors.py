@@ -2,6 +2,7 @@ import streamlit as st
 
 import data
 from mapping import class_legend, colour_bar, map_figure
+from widgets import pick
 
 DESCRIPTIONS = {
     "Aspect": ("°", "Direction the slope faces, clockwise from north; −1 marks flat cells."),
@@ -25,9 +26,8 @@ st.caption("The 14 conditioning factors every model was trained on, on the same 
 
 features = data.run_config()["features"]
 categorical = set(data.run_config()["categorical_coded"])
-cols = st.columns(2)
-factor = cols[0].selectbox("Factor", features, index=features.index("Rainfall"))
-opacity = cols[1].slider("Opacity", 0.0, 1.0, 0.85, step=0.05)
+factor = pick("Factor", features, "Rainfall", key="factor", pills=True)
+opacity = st.slider("Opacity", 0.0, 1.0, 0.85, step=0.05)
 
 unit, description = DESCRIPTIONS[factor]
 legend = data.map_legend(f"factor_{factor}")

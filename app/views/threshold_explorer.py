@@ -2,6 +2,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import data
+from widgets import pick
 
 st.title("Threshold explorer")
 st.caption(
@@ -9,7 +10,7 @@ st.caption(
     "Max-CSI and Youden thresholds were selected on the validation split; the curves are on the test split."
 )
 
-model = st.selectbox("Model", data.MODELS)
+model = pick("Model", data.MODELS, "XGBoost", key="threshold_model")
 curve = data.threshold_curve(model)
 marks = data.run_config()["thresholds"][model]
 
