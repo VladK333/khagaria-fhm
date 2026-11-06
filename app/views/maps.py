@@ -7,7 +7,9 @@ CENTER = dict(lat=25.49, lon=86.57)
 # Same colours as scripts/viz/prepare_map_layers.py
 CLASSES = {"Very Low": "#E1F5EE", "Low": "#9FE1CB", "Moderate": "#FAC775", "High": "#F0997B",
            "Very High": "#D85A30"}
-LAYERS = {"Probability": "probability", "Risk classes": "classes"}
+BINARY = {"Flood": "#185FA5", "Non-flood": "#D3D1C7"}
+LAYERS = {"Probability": "probability", "Risk classes": "classes", "Binary hazard": "binary"}
+LEGENDS = {"Risk classes": CLASSES, "Binary hazard": BINARY}
 
 
 def colour_bar() -> list[go.Scattermap]:
@@ -34,7 +36,7 @@ model = cols[0].selectbox("Model", data.MODELS)
 opacity = cols[1].slider("Opacity", 0.0, 1.0, 0.8, step=0.05)
 
 image, corners = data.map_layer(f"{LAYERS[layer]}_{model}")
-fig = go.Figure(colour_bar() if layer == "Probability" else class_legend(CLASSES))
+fig = go.Figure(colour_bar() if layer == "Probability" else class_legend(LEGENDS[layer]))
 fig.update_layout(
     map=dict(style="open-street-map", center=CENTER, zoom=9.3,
              layers=[dict(sourcetype="image", source=image, coordinates=corners, opacity=opacity),
@@ -48,6 +50,14 @@ st.plotly_chart(fig, width="stretch", config={"scrollZoom": True})
 if layer == "Probability":
     st.caption(f"Probability of flooding predicted by {model} for every 30 m pixel (shown at 60 m). "
                "Outside the district the map is transparent.")
+elif layer == "Binary hazard":
+    area = data.area_statistics().set_index("Model").loc[model]
+    m = st.columns(3)
+    m[0].metric("Max-CSI threshold", f"{area['MaxCSI_threshold']:.3f}")
+    m[1].metric("Flood hazard area", f"{area['Hazard_km2']:,.0f} km²")
+    m[2].metric("Share of district", f"{area['Hazard_pct']:.1f} %")
+    st.caption(f"Pixels where the {model} probability is at or above its Max-CSI threshold, which was selected "
+               "on the validation split. For comparison, the SAR flood inventory covers 824 km² (56.1 %).")
 else:
     breaks = data.run_config()["natural_breaks"]
     st.caption(f"{model} probabilities split into five classes with the natural breaks of the XGBoost map "
