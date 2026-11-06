@@ -10,9 +10,12 @@ CLASSES = {"Very Low": "#E1F5EE", "Low": "#9FE1CB", "Moderate": "#FAC775", "High
 BINARY = {"Flood": "#185FA5", "Non-flood": "#D3D1C7"}
 ERRORS = {"Hit (TP)": "#1D9E75", "False alarm (FP)": "#EF9F27", "Missed (FN)": "#E24B4A",
           "Correct non-flood (TN)": "#D3D1C7"}
+AGREEMENT = {f"{n} model{'s' * (n != 1)}": c for n, c in
+             enumerate(["#F1EFE8", "#CECBF6", "#AFA9EC", "#7F77DD", "#534AB7", "#26215C"])}
 LAYERS = {"Probability": "probability", "Risk classes": "classes", "Binary hazard": "binary",
-          "Errors": "errors"}
-LEGENDS = {"Risk classes": CLASSES, "Binary hazard": BINARY, "Errors": ERRORS}
+          "Errors": "errors", "Model agreement": "agreement"}
+LEGENDS = {"Risk classes": CLASSES, "Binary hazard": BINARY, "Errors": ERRORS, "Model agreement": AGREEMENT}
+ALL_MODELS = {"Model agreement"}  # layers that combine all models instead of showing one
 PIXEL_KM2 = 0.03 * 0.03
 
 
@@ -36,10 +39,10 @@ layer = st.segmented_control("Layer", list(LAYERS), default="Probability")
 if layer is None:
     layer = "Probability"
 cols = st.columns(2)
-model = cols[0].selectbox("Model", data.MODELS)
+model = cols[0].selectbox("Model", data.MODELS, disabled=layer in ALL_MODELS)
 opacity = cols[1].slider("Opacity", 0.0, 1.0, 0.8, step=0.05)
 
-image, corners = data.map_layer(f"{LAYERS[layer]}_{model}")
+image, corners = data.map_layer(LAYERS[layer] if layer in ALL_MODELS else f"{LAYERS[layer]}_{model}")
 fig = go.Figure(colour_bar() if layer == "Probability" else class_legend(LEGENDS[layer]))
 fig.update_layout(
     map=dict(style="open-street-map", center=CENTER, zoom=9.3,
@@ -75,6 +78,14 @@ elif layer == "Errors":
         "district pixel, including the 70 % the model was trained on, so it looks better than the model really is "
         "for models that overfit: compare the two CSI values. The honest score is the one on the test split."
     )
+elif layer == "Model agreement":
+    agree = data.agreement_areas().set_index("models_flagging")["km2"]
+    m = st.columns(3)
+    m[0].metric("All models agree", f"{100 * (agree[0] + agree[5]) / agree.sum():.1f} %")
+    m[1].metric("Flood in all 5 models", f"{agree[5]:,.0f} km²")
+    m[2].metric("Models disagree", f"{agree[1:5].sum():,.0f} km²")
+    st.caption("How many of the five models flag each pixel as flood, each at its own Max-CSI threshold. "
+               "The light purple fringe (1–4 models) is where the choice of model changes the hazard map.")
 else:
     breaks = data.run_config()["natural_breaks"]
     st.caption(f"{model} probabilities split into five classes with the natural breaks of the XGBoost map "
