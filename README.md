@@ -45,7 +45,7 @@ python scripts/v2/04_schematics.py   # flowchart + graphical abstract
 The data-preparation, training and SHAP scripts were removed from this repository for now; they are available from the repository owner on request.
 
 ## Interactive app
-A Streamlit app for exploring the v2 results in the browser. It only reads the CSV/JSON/NPY files in `results_v2/`; nothing is retrained. It needs four light packages, not the full analysis environment.
+A Streamlit app for exploring the v2 results in the browser. It only reads the CSV/JSON/NPY files in `results_v2/` and the pre-rendered map layers in `app/assets/maps/`; nothing is retrained. It needs four light packages, not the full analysis environment.
 ```bash
 pip install -r app/requirements.txt
 streamlit run app/main.py            # opens http://localhost:8501
@@ -59,6 +59,15 @@ streamlit run app/main.py            # opens http://localhost:8501
 | SHAP | global importance, normalised comparison and rank heatmap across models, beeswarm, dependence plots |
 | Input data | correlation matrix and VIF of the 14 factors |
 | Area statistics | area per susceptibility class and model agreement |
+| Maps | probability, risk classes, binary hazard, errors vs the flood inventory (TP/FP/FN/TN) and model agreement on an OpenStreetMap basemap; two models side by side |
+| Input factors | the 14 conditioning factors on the same basemap, with their SHAP rank and VIF |
+
+The map pages show PNG layers in `app/assets/maps/`, made from the GeoTIFFs by `scripts/viz/prepare_map_layers.py` (reprojected to WGS84, coloured, downsampled to ~60 m). They are committed, so the app does not need rasterio. Re-run the script only if the rasters change:
+```bash
+pip install rasterio matplotlib pillow pyshp
+python scripts/viz/prepare_map_layers.py
+```
+The error map covers every district pixel, training pixels included, so it flatters models that overfit; the test-split metrics on the other pages are the honest scores.
 
 ## Layout (v2)
 | Path | What |
@@ -73,7 +82,8 @@ streamlit run app/main.py            # opens http://localhost:8501
 | `results_v2/training/` | training histories (XGBoost/CatBoost AUC per round, ANN/DNN loss per epoch), `sample_20k_pixels.csv` (balanced pixels with features, label, split, coordinates and all five predictions), `split_indices.npz` |
 | `results_v2/maps/` | `probability/Map_*.tif`, `binary/Binary_*_MaxCSI.tif`, `binary/Agreement_count_MaxCSI.tif` (0–5 models), `classified/Classified_*_NaturalBreaks.tif` |
 | `results_v2/figures/` | all manuscript figures |
-| `app/` | interactive Streamlit app: `main.py` (entry point), `data.py` (cached loaders), `views/` (one file per page) |
+| `app/` | interactive Streamlit app: `main.py` (entry point), `data.py` (cached loaders), `mapping.py` (shared map drawing), `views/` (one file per page), `assets/maps/` (pre-rendered map layers) |
+| `scripts/viz/` | `prepare_map_layers.py`: builds `app/assets/maps/` from the result and factor GeoTIFFs |
 | `manuscript/manuscript_v2.tex` / `.pdf` | revised manuscript (built by `make_v2.py` from the submitted `manuscript.tex`) |
 
 ### Submitted version (kept for reference)
