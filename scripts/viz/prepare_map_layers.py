@@ -63,11 +63,34 @@ def colour_classes(values: np.ndarray, palette: dict[int, str]) -> np.ndarray:
     return rgba
 
 
-def write_layer(name: str, rgba: np.ndarray, corners: list[list[float]]) -> None:
+def write_layer(name: str, rgba: np.ndarray, corners: list[list[float]], legend: dict | None = None) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     Image.fromarray(rgba, "RGBA").save(OUT / f"{name}.png", optimize=True)
-    (OUT / f"{name}.json").write_text(json.dumps({"coordinates": corners}, indent=2))
+    meta = {"coordinates": corners} | ({"legend": legend} if legend else {})
+    (OUT / f"{name}.json").write_text(json.dumps(meta, indent=2))
     print(f"{name}: {rgba.shape[1]} x {rgba.shape[0]} px")
+
+
+def hex_colour(rgba: tuple[float, ...]) -> str:
+    return "#" + "".join(f"{round(c * 255):02X}" for c in rgba[:3])
+
+
+def write_factor(name: str, cmap: str) -> None:
+    """One conditioning factor; the legend (colour scale or class colours) is stored next to the image so
+    that the app draws exactly the colours used here."""
+    values, corners = reproject_to_wgs84(ROOT / "data" / "predictors_30m_v2" / f"{name}_30m.tif")
+    if name in CATEGORICAL:
+        codes = [int(c) for c in np.unique(values[~np.isnan(values)])]
+        palette = {code: hex_colour(colormaps[cmap](i % 10)) for i, code in enumerate(codes)}
+        write_layer(f"factor_{name}", colour_classes(values, palette), corners,
+                    {"classes": {str(code): colour for code, colour in palette.items()}})
+    else:
+        # Stretch between the 2nd and 98th percentile so a few extreme pixels do not wash out the map
+        vmin, vmax = (float(v) for v in np.nanpercentile(values, [2, 98]))
+        stops = np.linspace(0, 1, 11)
+        write_layer(f"factor_{name}", colour_continuous(values, cmap, vmin, vmax), corners,
+                    {"vmin": vmin, "vmax": vmax,
+                     "colorscale": [[float(s), hex_colour(colormaps[cmap](s))] for s in stops]})
 
 
 def write_boundary(path: Path) -> None:
@@ -103,6 +126,12 @@ CLASSES = {0: "#E1F5EE", 1: "#9FE1CB", 2: "#FAC775", 3: "#F0997B", 4: "#D85A30"}
 BINARY = {0: "#D3D1C780", 1: "#185FA5"}  # non-flood half transparent, flood
 ERRORS = {0: "#D3D1C780", 1: "#E24B4A", 2: "#EF9F27", 3: "#1D9E75"}  # TN, FN, FP, TP
 AGREEMENT = {0: "#F1EFE880", 1: "#CECBF6", 2: "#AFA9EC", 3: "#7F77DD", 4: "#534AB7", 5: "#26215C"}
+# Conditioning factors (data/predictors_30m_v2) and their matplotlib colormaps
+FACTORS = {"Aspect": "twilight", "Curvature": "RdBu_r", "Dis2Roads": "YlOrBr", "Dis2stream": "YlGnBu_r",
+           "Elevation": "terrain", "Geomorphology": "tab10", "Lithology": "tab10", "LULC": "tab10",
+           "Rainfall": "Blues", "Slope": "YlOrRd", "Soil": "tab10", "SPI": "PuOr", "Stream_Density": "Purples",
+           "TWI": "GnBu"}
+CATEGORICAL = {"Geomorphology", "Lithology", "LULC", "Soil"}
 
 if __name__ == "__main__":
     write_boundary(ROOT / "data" / "vectors" / "Khagaria_Boundary_UTM.shp")
@@ -126,3 +155,6 @@ if __name__ == "__main__":
     write_layer("agreement", colour_classes(values, AGREEMENT), corners)
 
     write_error_counts(ROOT / "data" / "inventory" / "label_30m_v2.tif", maps)
+
+    for factor, cmap in FACTORS.items():
+        write_factor(factor, cmap)
