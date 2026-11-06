@@ -104,6 +104,12 @@ def map_layer(name: str) -> tuple[str, list[list[float]]]:
 
 
 @st.cache_data
+def error_counts_district() -> pd.DataFrame:
+    """TP/FP/FN/TN pixels of each binary map over the whole district (training pixels included)."""
+    return pd.read_csv(MAP_LAYERS / "error_counts_district.csv", index_col="Model")
+
+
+@st.cache_data
 def district_boundary() -> dict:
     """District boundary as WGS84 GeoJSON."""
     with open(MAP_LAYERS / "district_boundary.geojson") as f:

@@ -82,6 +82,21 @@ def write_boundary(path: Path) -> None:
     print(f"district_boundary: {len(features)} polygon(s)")
 
 
+def write_error_counts(label_path: Path, maps: Path) -> None:
+    """Confusion counts of each binary map against the flood inventory over all district pixels,
+    at the native 30 m resolution (so they include the training pixels, unlike the test metrics)."""
+    with rasterio.open(label_path) as src:
+        label = src.read(1)
+    rows = ["Model,TP,FP,FN,TN"]
+    for model in MODELS:
+        with rasterio.open(maps / "binary" / f"Binary_{model}_MaxCSI.tif") as src:
+            pred = src.read(1)
+        counts = [((pred == p) & (label == t)).sum() for p, t in [(1, 1), (1, 0), (0, 1), (0, 0)]]
+        rows.append(",".join([model] + [str(c) for c in counts]))
+    (OUT / "error_counts_district.csv").write_text("\n".join(rows) + "\n")
+    print("error_counts_district.csv")
+
+
 MODELS = ["XGBoost", "CatBoost", "RandomForest", "DNN", "ANN"]
 # Keep these colours in sync with the legends in app/views/maps.py
 CLASSES = {0: "#E1F5EE", 1: "#9FE1CB", 2: "#FAC775", 3: "#F0997B", 4: "#D85A30"}  # Very Low .. Very High
@@ -109,3 +124,5 @@ if __name__ == "__main__":
 
     values, corners = reproject_to_wgs84(maps / "binary" / "Agreement_count_MaxCSI.tif")
     write_layer("agreement", colour_classes(values, AGREEMENT), corners)
+
+    write_error_counts(ROOT / "data" / "inventory" / "label_30m_v2.tif", maps)

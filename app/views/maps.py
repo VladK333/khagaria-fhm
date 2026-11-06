@@ -8,8 +8,12 @@ CENTER = dict(lat=25.49, lon=86.57)
 CLASSES = {"Very Low": "#E1F5EE", "Low": "#9FE1CB", "Moderate": "#FAC775", "High": "#F0997B",
            "Very High": "#D85A30"}
 BINARY = {"Flood": "#185FA5", "Non-flood": "#D3D1C7"}
-LAYERS = {"Probability": "probability", "Risk classes": "classes", "Binary hazard": "binary"}
-LEGENDS = {"Risk classes": CLASSES, "Binary hazard": BINARY}
+ERRORS = {"Hit (TP)": "#1D9E75", "False alarm (FP)": "#EF9F27", "Missed (FN)": "#E24B4A",
+          "Correct non-flood (TN)": "#D3D1C7"}
+LAYERS = {"Probability": "probability", "Risk classes": "classes", "Binary hazard": "binary",
+          "Errors": "errors"}
+LEGENDS = {"Risk classes": CLASSES, "Binary hazard": BINARY, "Errors": ERRORS}
+PIXEL_KM2 = 0.03 * 0.03
 
 
 def colour_bar() -> list[go.Scattermap]:
@@ -58,6 +62,19 @@ elif layer == "Binary hazard":
     m[2].metric("Share of district", f"{area['Hazard_pct']:.1f} %")
     st.caption(f"Pixels where the {model} probability is at or above its Max-CSI threshold, which was selected "
                "on the validation split. For comparison, the SAR flood inventory covers 824 km² (56.1 %).")
+elif layer == "Errors":
+    c = data.error_counts_district().loc[model]
+    test_csi = data.test_metrics().query("Threshold_method == 'MaxCSI'").set_index("Model").loc[model, "CSI"]
+    m = st.columns(4)
+    m[0].metric("False alarms (FP)", f"{c['FP'] * PIXEL_KM2:,.0f} km²")
+    m[1].metric("Missed floods (FN)", f"{c['FN'] * PIXEL_KM2:,.0f} km²")
+    m[2].metric("CSI, whole district", f"{c['TP'] / (c['TP'] + c['FP'] + c['FN']):.3f}")
+    m[3].metric("CSI, test split", f"{test_csi:.3f}")
+    st.caption(
+        f"The {model} hazard map compared with the SAR flood inventory, pixel by pixel. This map covers every "
+        "district pixel, including the 70 % the model was trained on, so it looks better than the model really is "
+        "for models that overfit: compare the two CSI values. The honest score is the one on the test split."
+    )
 else:
     breaks = data.run_config()["natural_breaks"]
     st.caption(f"{model} probabilities split into five classes with the natural breaks of the XGBoost map "
