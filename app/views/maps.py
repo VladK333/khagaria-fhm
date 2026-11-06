@@ -2,8 +2,8 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import data
+from mapping import class_legend, colour_bar, map_figure as base_map
 
-CENTER = dict(lat=25.49, lon=86.57)
 # Same colours as scripts/viz/prepare_map_layers.py
 CLASSES = {"Very Low": "#E1F5EE", "Low": "#9FE1CB", "Moderate": "#FAC775", "High": "#F0997B",
            "Very High": "#D85A30"}
@@ -19,34 +19,12 @@ ALL_MODELS = {"Model agreement"}  # layers that combine all models instead of sh
 PIXEL_KM2 = 0.03 * 0.03
 
 
-def colour_bar() -> list[go.Scattermap]:
-    """An invisible trace that only draws a colour bar for the probability image."""
-    return [go.Scattermap(lat=[None], lon=[None], mode="markers", hoverinfo="skip", showlegend=False,
-                          marker=dict(color=[0], colorscale="Blues", cmin=0, cmax=1, showscale=True,
-                                      colorbar=dict(title="Flood<br>probability", thickness=14)))]
-
-
-def class_legend(classes: dict[str, str]) -> list[go.Scattermap]:
-    """Invisible traces that only add one legend entry per class colour."""
-    return [go.Scattermap(lat=[None], lon=[None], mode="markers", name=name, hoverinfo="skip",
-                          marker=dict(size=14, color=colour)) for name, colour in classes.items()]
-
-
 def map_figure(layer: str, model: str, opacity: float, height: int) -> go.Figure:
-    """The selected layer of one model over the basemap, with the district boundary and a legend."""
-    image, corners = data.map_layer(LAYERS[layer] if layer in ALL_MODELS else f"{LAYERS[layer]}_{model}")
-    fig = go.Figure(colour_bar() if layer == "Probability" else class_legend(LEGENDS[layer]))
-    fig.update_layout(
-        map=dict(style="open-street-map", center=CENTER, zoom=9.3 if height > 500 else 8.8,
-                 layers=[dict(sourcetype="image", source=image, coordinates=corners, opacity=opacity),
-                         dict(sourcetype="geojson", source=data.district_boundary(), type="line",
-                              color="#2C2C2A", line=dict(width=2))]),
-        height=height, margin=dict(l=0, r=0, t=0, b=0),
-        # Lifted above the OpenStreetMap attribution, which spans the bottom of narrow maps
-        legend=dict(x=0.01, y=0.01 if height > 500 else 0.07, yanchor="bottom",
-                    bgcolor="rgba(255,255,255,0.85)", font=dict(color="#2C2C2A", size=11)),
-    )
-    return fig
+    """The selected layer of one model over the basemap."""
+    name = LAYERS[layer] if layer in ALL_MODELS else f"{LAYERS[layer]}_{model}"
+    legend = (colour_bar("Blues", 0, 1, "Flood<br>probability") if layer == "Probability"
+              else class_legend(LEGENDS[layer]))
+    return base_map(name, legend, opacity, height)
 
 
 def layer_metrics(layer: str, model: str) -> list[tuple[str, str]]:

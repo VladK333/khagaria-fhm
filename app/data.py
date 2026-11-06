@@ -104,6 +104,13 @@ def map_layer(name: str) -> tuple[str, list[list[float]]]:
 
 
 @st.cache_data
+def map_legend(name: str) -> dict:
+    """Legend stored next to a factor layer: vmin/vmax/colorscale, or class code -> colour."""
+    with open(MAP_LAYERS / f"{name}.json") as f:
+        return json.load(f)["legend"]
+
+
+@st.cache_data
 def error_counts_district() -> pd.DataFrame:
     """TP/FP/FN/TN pixels of each binary map over the whole district (training pixels included)."""
     return pd.read_csv(MAP_LAYERS / "error_counts_district.csv", index_col="Model")
