@@ -1,4 +1,3 @@
-"""Click-only selectors, used instead of st.selectbox (whose search field lets the user type)."""
 import streamlit as st
 
 
