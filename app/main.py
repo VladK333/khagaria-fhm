@@ -1,6 +1,8 @@
 """Entry point: streamlit run app/main.py"""
 import streamlit as st
 
+import data
+
 st.set_page_config(page_title="Khagaria FHM", page_icon=":ocean:", layout="wide")
 
 pages = [
@@ -15,4 +17,8 @@ pages = [
     st.Page("views/input_factors.py", title="Input factors", icon=":material/layers:"),
 ]
 
-st.navigation(pages).run()
+try:
+    st.navigation(pages).run()
+except data.MissingDataError as err:
+    # One place for every page: a clear message instead of a Python traceback
+    st.error(f"**{err}**\n\n{err.hint}", icon=":material/error:")
